@@ -1,4 +1,4 @@
-<<<<<<< 37e0757ffddf05c2b72eb42d8d33b73634c696c9
+
 # WaveNet vocoder
 
 [![PyPI](https://img.shields.io/pypi/v/wavenet_vocoder.svg)](https://pypi.python.org/pypi/wavenet_vocoder)
