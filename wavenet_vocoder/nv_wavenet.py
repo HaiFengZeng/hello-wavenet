@@ -454,6 +454,8 @@ class NvWaveNet(nn.Module):
             return weights_list, bias_list
 
         dilate_weights, dilate_biases = get_parameters_list(self, 'dilated')
+        dilate_weights[:, :, 0], dilate_weights[:, :, 1] = dilate_weights[:, :, 1], dilate_weights[:, :, 0]
+        dilate_biases[:R], dilate_biases[R:] = dilate_biases[R:], dilate_biases[:R]
         skip_weights, skip_biases = get_parameters_list(self, 'skip_out')
         res_weights, res_biases = get_parameters_list(self, 'residual')
         res_weights = res_weights[:-1]
