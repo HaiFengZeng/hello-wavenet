@@ -510,7 +510,7 @@ class NvWaveNet(nn.Module):
         condition_result = condition_result.permute(2, 1, 0, 3)  # => [2*R,B,L,T]
         return condition_result
 
-    def prepare_model_condition(self, ckp_path, mel_path, save_path=None, g=None):
+    def prepare_model_condition(self, ckp_path, mel_path,use_cuda =True, save_path=None, g=None):
         '''
         prepare data for nv wavenet
         :param save_path: output dir for model.pt and cond_input.pt
@@ -522,6 +522,8 @@ class NvWaveNet(nn.Module):
         import os
         checkpoint = torch.load(ckp_path)
         self.load_state_dict(checkpoint['state_dict'])
+        if use_cuda:
+            self.cuda()
         self.eval()
         if not save_path:
             save_path = 'model'
@@ -533,7 +535,7 @@ class NvWaveNet(nn.Module):
         c = torch.from_numpy(mel_condition)
         c = c.permute(1, 0)
         channel, k = c.size()
-        c = c.view(1, channel, k).cuda()
+        c = c.view(1, channel, k).cuda() if use_cuda else c.view(1, channel, k)
         condtion_input = self.compute_condition_input(c, g)
         torch.save(model, model_path)
         torch.save(condtion_input, condition_input_path)
