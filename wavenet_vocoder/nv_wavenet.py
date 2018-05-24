@@ -456,6 +456,8 @@ class NvWaveNet(nn.Module):
         dilate_weights, dilate_biases = get_parameters_list(self, 'dilated')
         skip_weights, skip_biases = get_parameters_list(self, 'skip_out')
         res_weights, res_biases = get_parameters_list(self, 'residual')
+        res_weights = res_weights[:-1]
+        res_biases = res_biases[:-1]
         embedding_prev = self.first_conv.weight[:, :, 0].permute(1, 0)
         embedding_curr = self.first_conv.weight[:, :, 1].permute(1, 0)
         conv_out_weight = self.last_conv_layers._modules['1'].weight.data[:, :, 0]
@@ -512,7 +514,7 @@ class NvWaveNet(nn.Module):
         condition_result = condition_result.permute(2, 1, 0, 3)  # => [2*R,B,L,T]
         return condition_result
 
-    def prepare_model_condition(self, ckp_path, mel_path,use_cuda =True, save_path=None, g=None):
+    def prepare_model_condition(self, ckp_path, mel_path, use_cuda=True, save_path=None, g=None):
         '''
         prepare data for nv wavenet
         :param save_path: output dir for model.pt and cond_input.pt
@@ -529,7 +531,7 @@ class NvWaveNet(nn.Module):
         self.eval()
         if not save_path:
             save_path = 'model'
-        os.makedirs(save_path,exist_ok=True)
+        os.makedirs(save_path, exist_ok=True)
         model_path = save_path + '/model.pt'
         condition_input_path = save_path + '/cond_input.pt'
         model = self.get_parameters_dict()
