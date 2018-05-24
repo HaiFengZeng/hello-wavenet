@@ -249,6 +249,8 @@ class NvWaveNet(nn.Module):
         # Feed data to network
         x = F.pad(x, (1, 0))
         x = self.first_conv(x)
+        if hparams.use_tanh_embed:
+            x = torch.tanh(x)
         skips = None
         for layer in range(self.layers):
             condtion_f = self._modules['condition_{}'.format(layer)]
@@ -474,7 +476,7 @@ class NvWaveNet(nn.Module):
             'res_biases': res_biases,  # list R
             'skip_weights': skip_weights,  # list R*R
             'skip_biases': skip_biases,  # list R
-            'use_embed_tanh': True,  # bool use embed_tanh or not
+            'use_embed_tanh': hparams.use_tanh_embed,  # bool use embed_tanh or not
             'max_dilation': self.max_dilation
         }
         # some assert
