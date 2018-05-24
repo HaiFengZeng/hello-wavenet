@@ -458,8 +458,8 @@ class NvWaveNet(nn.Module):
         res_weights, res_biases = get_parameters_list(self, 'residual')
         res_weights = res_weights[:-1]
         res_biases = res_biases[:-1]
-        embedding_prev = self.first_conv.weight[:, :, 0].permute(1, 0)
-        embedding_curr = self.first_conv.weight[:, :, 1].permute(1, 0)
+        embedding_prev = self.first_conv.weight[:, :, 1].permute(1, 0)
+        embedding_curr = self.first_conv.weight[:, :, 0].permute(1, 0)
         conv_out_weight = self.last_conv_layers._modules['1'].weight.data[:, :, 0]
         conv_end_weight = self.last_conv_layers._modules['3'].weight.data[:, :, 0]
         assert embedding_prev.size() == (A, R)
