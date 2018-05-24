@@ -11,7 +11,7 @@ from torch.nn import functional as F
 
 from .modules import Embedding, _conv1x1_forward
 
-from .modules import Conv1d1x1, ResidualConv1dGLU, ConvTranspose2d,Conv1d2x1
+from .modules import Conv1d1x1, ResidualConv1dGLU, ConvTranspose2d, Conv1d2x1
 from .mixture import sample_from_discretized_mix_logistic
 from hparams import hparams
 
@@ -113,8 +113,8 @@ class NvWaveNet(nn.Module):
         super(NvWaveNet, self).__init__()
         self.scalar_input = scalar_input
         self.layers = layers
-        self.stacks =stacks
-        self.max_dilation = 2**int(layers/stacks)
+        self.stacks = stacks
+        self.max_dilation = 2 ** int(layers / stacks)
         self.out_channels = out_channels
         self.cin_channels = cin_channels
         assert layers % stacks == 0
@@ -142,7 +142,7 @@ class NvWaveNet(nn.Module):
                     else:
                         self.conv1x1g = None
 
-                def forward(self, c, g,is_incremental=False):
+                def forward(self, c, g, is_incremental=False):
                     condition = None
                     if c is not None:
                         condition = _conv1x1_forward(self.conv1x1c, c, is_incremental)
@@ -246,9 +246,8 @@ class NvWaveNet(nn.Module):
             # B x C x T
             c = c.squeeze(1)
 
-
         # Feed data to network
-        x = F.pad(x,(1,0))
+        x = F.pad(x, (1, 0))
         x = self.first_conv(x)
         skips = None
         for layer in range(self.layers):
@@ -368,13 +367,13 @@ class NvWaveNet(nn.Module):
             ct = None if c is None else c[:, t, :].unsqueeze(1)
             gt = None if g is None else g_btc[:, t, :].unsqueeze(1)
 
-            x = current_input.view(1,1,hparams.out_channels)
+            x = current_input.view(1, 1, hparams.out_channels)
             x = self.first_conv.incremental_forward(x)
             skips = None
             for layer in range(self.layers):
                 f = self._modules['layer_{}'.format(layer)]
                 condition_f = self._modules['condition_{}'.format(layer)]
-                condition = condition_f(ct,gt,is_incremental=True)
+                condition = condition_f(ct, gt, is_incremental=True)
                 x, h = f.incremental_forward(x, condition=condition)
                 skips = h if skips is None else (skips + h) * math.sqrt(0.5)
             x = skips
@@ -444,10 +443,10 @@ class NvWaveNet(nn.Module):
             for layer in range(model.layers):
                 weight = model._modules['layer_{}'.format(layer)]._modules[map_name.get(name)].weight.data
                 bias = model._modules['layer_{}'.format(layer)]._modules[map_name.get(name)].bias.data
-                if name in ['skip_out','residual']:
-                    weight = weight[:,:,0]
+                if name in ['skip_out', 'residual']:
+                    weight = weight[:, :, 0]
                 assert weight.size() == size[name]
-                assert bias.size()[0]==size[name][0]
+                assert bias.size()[0] == size[name][0]
                 weights_list.append(weight)
                 bias_list.append(bias)
             return weights_list, bias_list
@@ -455,10 +454,10 @@ class NvWaveNet(nn.Module):
         dilate_weights, dilate_biases = get_parameters_list(self, 'dilated')
         skip_weights, skip_biases = get_parameters_list(self, 'skip_out')
         res_weights, res_biases = get_parameters_list(self, 'residual')
-        embedding_prev = self.first_conv.weight[:, :, 0].permute(1,0)
-        embedding_curr =  self.first_conv.weight[:, :, 1].permute(1,0)
-        conv_out_weight = self.last_conv_layers._modules['1'].weight.data[:,:,0]
-        conv_end_weight = self.last_conv_layers._modules['3'].weight.data[:,:,0]
+        embedding_prev = self.first_conv.weight[:, :, 0].permute(1, 0)
+        embedding_curr = self.first_conv.weight[:, :, 1].permute(1, 0)
+        conv_out_weight = self.last_conv_layers._modules['1'].weight.data[:, :, 0]
+        conv_end_weight = self.last_conv_layers._modules['3'].weight.data[:, :, 0]
         assert embedding_prev.size() == (A, R)
         assert embedding_curr.size() == (A, R)
         assert conv_out_weight.size() == (S, S)
@@ -484,7 +483,7 @@ class NvWaveNet(nn.Module):
 
     def compute_condition_input(self, c, g=None):
         B, L, C = c.size()
-        T = L*hparams.hop_size
+        T = L * hparams.hop_size
         if g is not None:
             if self.embed_speakers is not None:
                 # (B x 1) -> (B x 1 x gin_channels)
@@ -511,8 +510,28 @@ class NvWaveNet(nn.Module):
         condition_result = condition_result.permute(2, 1, 0, 3)  # => [2*R,B,L,T]
         return condition_result
 
-
-class UpSampleCondition(nn.Module):
-    def __init__(self):
-        super(UpSampleCondition,self).__init__()
-        pass
+    def prepare_model_condition(self, ckp_path, mel_path, save_path, g=None):
+        '''
+        prepare data for nv wavenet
+        :param save_path: output dir for model.pt and cond_input.pt
+        :param ckp_path:  nv-wavenet checkpoint
+        :param mel_path:  mel spectrum for compute condition
+        :param g:  global condition
+        :return: None
+        '''
+        checkpoint = torch.load(ckp_path)
+        self.load_state_dict(checkpoint['state_dict'])
+        self.eval()
+        if not save_path:
+            save_path = '/home/tesla/work/pycharm/hello-wavenet/model'
+        model_path = save_path + '/model.pt'
+        condition_input_path = save_path + '/cond_input.pt'
+        model = self.get_parameters_dict()
+        mel_condition = np.load(mel_path)
+        c = torch.from_numpy(mel_condition)
+        c = c.permute(1, 0)
+        channel, k = c.size()
+        c = c.view(1, channel, k).cuda()
+        condtion_input = self.compute_condition_input(c, g)
+        torch.save(model, model_path)
+        torch.save(condtion_input, condition_input_path)
