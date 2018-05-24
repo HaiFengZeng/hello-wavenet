@@ -768,33 +768,33 @@ def save_checkpoint(device, model, optimizer, step, checkpoint_dir, epoch, ema=N
         print("Saved averaged checkpoint:", checkpoint_path)
 
 
-def build_model(name='original'):
-    if is_mulaw_quantize(hparams.input_type):
-        if hparams.out_channels != hparams.quantize_channels:
+def build_model(hp=hparams):
+    if is_mulaw_quantize(hp.input_type):
+        if hp.out_channels != hp.quantize_channels:
             raise RuntimeError(
                 "out_channels must equal to quantize_chennels if input_type is 'mulaw-quantize'")
-    if hparams.upsample_conditional_features and hparams.cin_channels < 0:
+    if hp.upsample_conditional_features and hp.cin_channels < 0:
         s = "Upsample conv layers were specified while local conditioning disabled. "
         s += "Notice that upsample conv layers will never be used."
         warn(s)
 
-    model = getattr(builder, hparams.builder)(
-        out_channels=hparams.out_channels,
-        layers=hparams.layers,
-        stacks=hparams.stacks,
-        residual_channels=hparams.residual_channels,
-        gate_channels=hparams.gate_channels,
-        skip_out_channels=hparams.skip_out_channels,
-        cin_channels=hparams.cin_channels,
-        gin_channels=hparams.gin_channels,
-        weight_normalization=hparams.weight_normalization,
-        n_speakers=hparams.n_speakers,
-        dropout=hparams.dropout,
-        kernel_size=hparams.kernel_size,
-        upsample_conditional_features=hparams.upsample_conditional_features,
-        upsample_scales=hparams.upsample_scales,
-        freq_axis_kernel_size=hparams.freq_axis_kernel_size,
-        scalar_input=is_scalar_input(hparams.input_type),
+    model = getattr(builder, hp.builder)(
+        out_channels=hp.out_channels,
+        layers=hp.layers,
+        stacks=hp.stacks,
+        residual_channels=hp.residual_channels,
+        gate_channels=hp.gate_channels,
+        skip_out_channels=hp.skip_out_channels,
+        cin_channels=hp.cin_channels,
+        gin_channels=hp.gin_channels,
+        weight_normalization=hp.weight_normalization,
+        n_speakers=hp.n_speakers,
+        dropout=hp.dropout,
+        kernel_size=hp.kernel_size,
+        upsample_conditional_features=hp.upsample_conditional_features,
+        upsample_scales=hp.upsample_scales,
+        freq_axis_kernel_size=hp.freq_axis_kernel_size,
+        scalar_input=is_scalar_input(hp.input_type),
     )
 
     return model
