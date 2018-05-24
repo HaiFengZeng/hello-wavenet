@@ -923,7 +923,7 @@ if __name__ == "__main__":
     checkpoint_restore_parts = args["--restore-parts"]
     speaker_id = args["--speaker-id"]
     speaker_id = int(speaker_id) if speaker_id is not None else None
-    preset = '/home/jinqiangzeng/work/pycharm/wavenet_vocoder/presets/ljspeech_8_bit_nv.json'
+    preset = './presets/ljspeech_8_bit_nv.json'
 
     data_root = args["--data-root"]
     if data_root is None:
@@ -960,7 +960,8 @@ if __name__ == "__main__":
     # Model
     model = build_model().cuda(device)
     #### model test ####
-    # model.get_parameters_dict()
+    model.get_parameters_dict()
+    exit(1)
     # c = np.load('/home/jinqiangzeng/work/pycharm/wavenet_vocoder/data/ljspeech/ljspeech-mel-02299.npy')
     # c = torch.from_numpy(c)
     # c = c.permute(1,0)

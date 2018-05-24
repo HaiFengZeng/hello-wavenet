@@ -447,6 +447,9 @@ class NvWaveNet(nn.Module):
                 bias = model._modules['layer_{}'.format(layer)]._modules[map_name.get(name)].bias.data
                 if name in ['skip_out', 'residual']:
                     weight = weight[:, :, 0]
+                if name == 'residual':
+                    weight[:, :, 0], weight[:, :, 1] = weight[:, :, 1], weight[:, :, 0]
+                    bias[:R], bias[R:] = bias[R:], bias[:R]
                 assert weight.size() == size[name]
                 assert bias.size()[0] == size[name][0]
                 weights_list.append(weight)
@@ -454,8 +457,6 @@ class NvWaveNet(nn.Module):
             return weights_list, bias_list
 
         dilate_weights, dilate_biases = get_parameters_list(self, 'dilated')
-        dilate_weights[:, :, 0], dilate_weights[:, :, 1] = dilate_weights[:, :, 1], dilate_weights[:, :, 0]
-        dilate_biases[:R], dilate_biases[R:] = dilate_biases[R:], dilate_biases[:R]
         skip_weights, skip_biases = get_parameters_list(self, 'skip_out')
         res_weights, res_biases = get_parameters_list(self, 'residual')
         res_weights = res_weights[:-1]
