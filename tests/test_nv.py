@@ -1,6 +1,8 @@
+import sys
+
+sys.path.append('..')
 from train_nv import build_model
 from hparams import hparams
-import json
 
 preset = '/home/tesla/work/pycharm/hello-wavenet/presets/ljspeech_8_bit_nv.json'
 with open(preset) as f:

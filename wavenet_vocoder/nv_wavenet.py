@@ -510,7 +510,7 @@ class NvWaveNet(nn.Module):
         condition_result = condition_result.permute(2, 1, 0, 3)  # => [2*R,B,L,T]
         return condition_result
 
-    def prepare_model_condition(self, ckp_path, mel_path, save_path, g=None):
+    def prepare_model_condition(self, ckp_path, mel_path, save_path=None, g=None):
         '''
         prepare data for nv wavenet
         :param save_path: output dir for model.pt and cond_input.pt
