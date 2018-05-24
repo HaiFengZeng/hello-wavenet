@@ -519,11 +519,13 @@ class NvWaveNet(nn.Module):
         :param g:  global condition
         :return: None
         '''
+        import os
         checkpoint = torch.load(ckp_path)
         self.load_state_dict(checkpoint['state_dict'])
         self.eval()
         if not save_path:
-            save_path = '/home/tesla/work/pycharm/hello-wavenet/model'
+            save_path = 'model'
+        os.makedirs(save_path,exist_ok=True)
         model_path = save_path + '/model.pt'
         condition_input_path = save_path + '/cond_input.pt'
         model = self.get_parameters_dict()
