@@ -41,7 +41,7 @@ def Conv1d1x1(in_channels, out_channels, bias=True, weight_normalization=True, k
     """1-by-1 convolution layer
     """
     if weight_normalization:
-        assert bias
+        # assert bias
         return Conv1d(in_channels, out_channels, kernel_size=kernel_size, padding=0,
                       dilation=1, bias=bias, std_mul=1.0)
     else:
