@@ -15,7 +15,8 @@ def Conv1d(in_channels, out_channels, kernel_size, dropout=0, std_mul=4.0, **kwa
     m = conv.Conv1d(in_channels, out_channels, kernel_size, **kwargs)
     std = math.sqrt((std_mul * (1.0 - dropout)) / (m.kernel_size[0] * in_channels))
     m.weight.data.normal_(mean=0, std=std)
-    m.bias.data.zero_()
+    if torch.is_tensor(m.bias):
+        m.bias.data.zero_()
     return nn.utils.weight_norm(m)
 
 
@@ -143,11 +144,11 @@ class ResidualConv1dGLU(nn.Module):
         self.conv1x1_skip = Conv1d1x1(gate_out_channels, skip_out_channels, bias=bias,
                                       weight_normalization=weight_normalization)
 
-    def forward(self, x, c=None, g=None,condition=None):
-        return self._forward(x, c, g, False,condition=condition)
+    def forward(self, x, c=None, g=None, condition=None):
+        return self._forward(x, c, g, False, condition=condition)
 
     def incremental_forward(self, x, c=None, g=None, condition=None):
-        return self._forward(x, c, g, True,condition=condition)
+        return self._forward(x, c, g, True, condition=condition)
 
     def _forward(self, x, c=None, g=None, is_incremental=False, condition=None):
         """Forward
