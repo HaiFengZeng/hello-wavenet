@@ -169,10 +169,10 @@ class NvWaveNet(nn.Module):
             self.add_module('layer_{}'.format(layer), conv)
         self.last_conv_layers = nn.ModuleList([
             nn.ReLU(inplace=True),
-            Conv1d1x1(skip_out_channels, skip_out_channels,
+            Conv1d1x1(skip_out_channels, skip_out_channels, bias=False,
                       weight_normalization=weight_normalization),
             nn.ReLU(inplace=True),
-            Conv1d1x1(skip_out_channels, out_channels,
+            Conv1d1x1(skip_out_channels, out_channels, bias=False,
                       weight_normalization=weight_normalization),
         ])
 
@@ -371,6 +371,8 @@ class NvWaveNet(nn.Module):
 
             x = current_input.view(1, 1, hparams.out_channels)
             x = self.first_conv.incremental_forward(x)
+            if hparams.use_tanh_embed:
+                x = torch.tanh(x)
             skips = None
             for layer in range(self.layers):
                 f = self._modules['layer_{}'.format(layer)]
