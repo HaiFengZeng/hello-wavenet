@@ -960,8 +960,8 @@ if __name__ == "__main__":
     # Model
     model = build_model().cuda(device)
     #### model test ####
-    model.get_parameters_dict()
-    exit(1)
+    # model.get_parameters_dict()
+    # exit(1)
     # c = np.load('/home/jinqiangzeng/work/pycharm/wavenet_vocoder/data/ljspeech/ljspeech-mel-02299.npy')
     # c = torch.from_numpy(c)
     # c = c.permute(1,0)
